@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { parseRawTextToQuestions } from './utils/parser';
 import { rawQuestionText } from './data/rawText';
@@ -7,40 +6,13 @@ import QuestionCard from './components/QuestionCard';
 import ChatModal from './components/ChatModal';
 import { GoogleGenAI, Chat } from "@google/genai";
 
-// Initialize AI Client safely
-const apiKey = process.env.API_KEY;
-let ai: GoogleGenAI | null = null;
-
-if (apiKey) {
-  ai = new GoogleGenAI({ apiKey });
-} else {
-  console.error("API_KEY is missing! Check your environment variables.");
-}
+// Initialize AI Client
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // Updated: Show only 1 question per page
 const QUESTIONS_PER_PAGE = 1;
 
 const App: React.FC = () => {
-  // 1. Safety Check for API Key
-  if (!apiKey) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-xl border border-red-200 max-w-md text-center">
-          <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <h2 className="text-xl font-bold text-red-700 mb-2">Configuration Error</h2>
-          <p className="text-gray-600 mb-4">
-            The <code>API_KEY</code> environment variable is missing.
-          </p>
-          <p className="text-sm text-gray-500 bg-gray-100 p-3 rounded text-left">
-            <strong>Fix:</strong> Go to Vercel Dashboard &rarr; Settings &rarr; Environment Variables and add <code>API_KEY</code>.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,8 +109,6 @@ const App: React.FC = () => {
   };
 
   const handleExplain = async (question: Question) => {
-    if (!ai) return;
-
     setChatState({
       isOpen: true,
       questionId: question.id,
