@@ -1,3 +1,4 @@
+
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -13,6 +14,9 @@ export default defineConfig(({ mode }) => {
     define: {
       // This ensures process.env.API_KEY works in your App.tsx even after build
       'process.env.API_KEY': JSON.stringify(env.API_KEY),
+      // CRITICAL FIX: Polyfill process.env object to prevent "Uncaught ReferenceError: process is not defined"
+      // which causes white screen in production builds
+      'process.env': {},
     },
   }
 })
