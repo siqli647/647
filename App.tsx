@@ -7,11 +7,23 @@ import QuestionCard from './components/QuestionCard';
 import ChatPanel from './components/ChatPanel';
 
 const VISIBLE_QUEUE_SIZE = 3;
+const STORAGE_KEY = 'psych_exam_learned_ids_v1';
 
 const App: React.FC = () => {
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
-  const [learnedIds, setLearnedIds] = useState<Set<string>>(new Set());
+  
+  // Initialize state from localStorage
+  const [learnedIds, setLearnedIds] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch (e) {
+      console.warn('Failed to load progress from storage:', e);
+      return new Set();
+    }
+  });
+
   const [activeTab, setActiveTab] = useState<'todo' | 'done'>('todo');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
@@ -22,7 +34,16 @@ const App: React.FC = () => {
     setLoading(false);
   }, []);
 
-  // 2. Filter Lists
+  // 2. Persist Learned IDs
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(learnedIds)));
+    } catch (e) {
+      console.warn('Failed to save progress to storage:', e);
+    }
+  }, [learnedIds]);
+
+  // 3. Filter Lists
   const unlearnedQuestions = useMemo(() => 
     allQuestions.filter(q => !learnedIds.has(q.id)), 
   [allQuestions, learnedIds]);
@@ -31,7 +52,7 @@ const App: React.FC = () => {
     allQuestions.filter(q => learnedIds.has(q.id)), 
   [allQuestions, learnedIds]);
 
-  // 3. Queue Logic (Always show top 3 of unlearned)
+  // 4. Queue Logic (Always show top 3 of unlearned)
   const displayedQueue = unlearnedQuestions.slice(0, VISIBLE_QUEUE_SIZE);
 
   const handleMarkAsLearned = (id: string) => {
